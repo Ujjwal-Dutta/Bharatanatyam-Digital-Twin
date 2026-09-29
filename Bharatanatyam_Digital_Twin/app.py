@@ -1601,74 +1601,87 @@ with tab_twin:
                 f"**Frame Quality:** {row[quality_col]}"
             )
 
-        # ----------------------------------------------------
-        # PRE-RENDERED ANALYTICS FRAME
-        # ----------------------------------------------------
+# ----------------------------------------------------
+# PRE-RENDERED DIGITAL TWIN IMAGE
+# ----------------------------------------------------
 
-        image_dir = os.path.join(
-            BASE_DIR,
-            "images",
-            "analytics frames"
-        )
+import glob
 
-        image_candidates = [
-            f"{clean_class_name(twin_video)}_digital_twin.png",
-            f"{twin_video}_digital_twin.png"
-        ]
+# Search for Digital Twin images anywhere inside images/
+images_root = os.path.join(
+    BASE_DIR,
+    "images"
+)
 
-        image_path = None
+# Get all PNG files recursively
+all_png_files = glob.glob(
+    os.path.join(
+        images_root,
+        "**",
+        "*.png"
+    ),
+    recursive=True
+)
 
-        for filename in image_candidates:
+# Expected filename
+expected_filename = (
+    f"{clean_class_name(twin_video)}_digital_twin.png"
+)
 
-            candidate = os.path.join(
-                image_dir,
-                filename
-            )
+image_path = None
 
-            if os.path.exists(candidate):
+# First: exact filename match
+for file_path in all_png_files:
 
-                image_path = candidate
-                break
+    if os.path.basename(file_path).lower() == expected_filename.lower():
 
-        if image_path:
+        image_path = file_path
+        break
 
-            st.image(
-                image_path,
-                caption=(
-                    "Digital Twin Analytics Frame — "
-                    f"{twin_video}"
-                ),
-                use_container_width=True
-            )
+# Second: flexible match if exact match was not found
+if image_path is None:
 
-        else:
+    video_name = clean_class_name(
+        twin_video
+    ).lower().replace(" ", "")
 
-            st.info(
-                "No pre-rendered Digital Twin image was "
-                "found in images/analytics_frames. "
-                "The numerical Digital Twin state is still available."
-            )
+    for file_path in all_png_files:
 
-        st.subheader(
-            "Selected Digital Twin State"
-        )
+        filename = os.path.basename(
+            file_path
+        ).lower().replace(" ", "")
 
-        state_display = (
-            row.to_frame("Value")
-            .reset_index()
-        )
+        if (
+            video_name in filename
+            and "digital_twin" in filename
+        ):
 
-        state_display.columns = [
-            "Field",
-            "Value"
-        ]
+            image_path = file_path
+            break
 
-        st.dataframe(
-            state_display.head(100),
-            use_container_width=True,
-            hide_index=True
-        )
+# Display image
+if image_path is not None:
 
+    st.image(
+        image_path,
+        caption=(
+            "Digital Twin Analytics Frame — "
+            f"{twin_video}"
+        ),
+        use_container_width=True
+    )
+
+else:
+
+    st.warning(
+        f"Digital Twin image for '{twin_video}' "
+        "could not be found in the images folder."
+    )
+
+    st.caption(
+        "Expected image: "
+        f"{expected_filename}"
+    )
 
 # ============================================================
 # TAB 4 — RESEARCH RESULTS
