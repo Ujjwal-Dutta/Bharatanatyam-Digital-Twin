@@ -1608,7 +1608,7 @@ with tab_twin:
         image_dir = os.path.join(
             BASE_DIR,
             "images",
-            "analytics_frames"
+            "analytics frames"
         )
 
         image_candidates = [
